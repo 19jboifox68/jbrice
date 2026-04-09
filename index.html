@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brice — AI Automation Specialist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: {
+              50:  '#f2f2f2',
+              100: '#d4d4d4',
+              200: '#a8a8a8',
+              400: '#666666',
+              600: '#333333',
+              700: '#1f1f1f',
+              800: '#141414',
+              900: '#0c0c0c',
+              950: '#060606',
+            }
+          },
+          fontFamily: {
+            sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: {
+            tighter: '-0.04em',
+            tight: '-0.025em',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent: #d4d4d4;
+      --accent-glow: rgba(212, 212, 212, 0.18);
+      --bg: #060606;
+      --surface: #0f0f0f;
+      --surface-2: #161616;
+      --border: #1e1e1e;
+      --text: #f0f0f0;
+      --text-muted: #555;
+      --scrollbar-thumb: #1f1f1f;
+    }
+
+    /* ── Global ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      background-color: var(--bg);
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+    /* ── Selection ── */
+    ::selection { color: #fff; background-color: rgba(212, 212, 212, 0.25); }
+
+    /* ── Custom cursor (cross theme) ── */
+    @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+      * { cursor: none !important; }
+    }
+
+    /* Cross cursor */
+    #cursor {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    /* Horizontal arm */
+    #cursor::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 20px; height: 1.5px;
+      background: var(--accent);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px rgba(212,212,212,0.7);
+      transition: width 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease, box-shadow 0.2s ease;
+    }
+    /* Vertical arm */
+    #cursor::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 1.5px; height: 20px;
+      background: var(--accent);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 6px rgba(212,212,212,0.7);
+      transition: height 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Centre dot */
+    #cursor-dot {
+      position: fixed;
+      top: 0; left: 0;
+      width: 4px; height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 8px rgba(212,212,212,0.9);
+      transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    /* Hover — arms grow, dot brightens */
+    #cursor.hovering::before { width: 28px; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+    #cursor.hovering::after  { height: 28px; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+    #cursor-dot.hovering     { background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.7); transform: translate(-50%,-50%) scale(1.5); }
+
+    /* Click — arms shrink */
+    #cursor.clicking::before { width: 12px; }
+    #cursor.clicking::after  { height: 12px; }
+    #cursor-dot.clicking     { transform: translate(-50%,-50%) scale(0.6); }
+
+    /* Trailing ring — lagged */
+    #cursor-ring {
+      position: fixed;
+      top: 0; left: 0;
+      width: 32px; height: 32px;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.22s ease, height 0.22s ease;
+    }
+    /* Ring drawn as SVG inline via pseudo — use a real element instead */
+    #cursor-ring::before,
+    #cursor-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(212,212,212,0.45);
+      border-radius: 50%;
+      transition: border-color 0.2s ease, inset 0.22s ease;
+    }
+    /* second smaller ring for depth */
+    #cursor-ring::after {
+      inset: 6px;
+      border-color: rgba(212,212,212,0.2);
+      animation: ring-pulse 2s ease-in-out infinite;
+    }
+    @keyframes ring-pulse {
+      0%,100% { opacity: 0.5; transform: scale(1); }
+      50%      { opacity: 1;   transform: scale(1.08); }
+    }
+    #cursor-ring.hovering {
+      width: 44px; height: 44px;
+    }
+    #cursor-ring.hovering::before { border-color: rgba(255,255,255,0.35); }
+    #cursor-ring.hovering::after  { border-color: rgba(255,255,255,0.15); animation-duration: 0.8s; }
+
+    /* Tick marks on ring at N/E/S/W */
+    #cursor-ring .cr-b,
+    #cursor-ring .cr-d,
+    #cursor-ring .cr-e,
+    #cursor-ring .cr-f {
+      position: absolute;
+      background: var(--accent);
+      transition: background 0.2s ease;
+    }
+    /* top tick */
+    #cursor-ring .cr-b { width: 1.5px; height: 4px; top: -1px; left: 50%; transform: translateX(-50%); }
+    /* bottom tick */
+    #cursor-ring .cr-d { width: 1.5px; height: 4px; bottom: -1px; left: 50%; transform: translateX(-50%); }
+    /* left tick */
+    #cursor-ring .cr-e { width: 4px; height: 1.5px; left: -1px; top: 50%; transform: translateY(-50%); }
+    /* right tick */
+    #cursor-ring .cr-f { width: 4px; height: 1.5px; right: -1px; top: 50%; transform: translateY(-50%); }
+    #cursor-ring.hovering .cr-b,
+    #cursor-ring.hovering .cr-d,
+    #cursor-ring.hovering .cr-e,
+    #cursor-ring.hovering .cr-f { background: #fff; }
+
+    /* Click ripple */
+    .cursor-ripple {
+      position: fixed;
+      width: 8px; height: 8px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9996;
+      transform: translate(-50%, -50%) scale(1);
+      animation: ripple-out 0.5s ease-out forwards;
+    }
+    @keyframes ripple-out {
+      to { transform: translate(-50%, -50%) scale(6); opacity: 0; }
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ── Full-page particle canvas ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Ensure all sections render above star field ── */
+    section, nav, footer, .stack-section, #hero {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── Accent text ── */
+    .text-accent { color: var(--accent); }
+
+    /* ── Fade-in on scroll ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.08s; }
+    .reveal-delay-2 { transition-delay: 0.16s; }
+    .reveal-delay-3 { transition-delay: 0.24s; }
+    .reveal-delay-4 { transition-delay: 0.32s; }
+    .reveal-delay-5 { transition-delay: 0.40s; }
+    .reveal-delay-6 { transition-delay: 0.48s; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    nav.scrolled {
+      background: rgba(6, 6, 6, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+    .hero-glow {
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(212,212,212,0.08) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hero-heading {
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    /* ── Availability badge ── */
+    .badge-available {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px 5px 8px;
+      background: rgba(212, 212, 212, 0.08);
+      border: 1px solid rgba(212, 212, 212, 0.2);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #c8c8c8;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--accent);
+      animation: pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.875rem;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    /* Shimmer sweep */
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.55s ease;
+    }
+    .btn-primary:hover::before { transform: translateX(100%); }
+    .btn-primary:hover {
+      background: #b8b8b8;
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 12px 40px rgba(212,212,212,0.5), 0 0 0 1px rgba(212,212,212,0.3);
+      animation: none;
+    }
+    .btn-primary:active {
+      transform: translateY(0) scale(0.98);
+      box-shadow: none;
+      transition-duration: 0.08s;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,212,212,0); }
+      50%       { box-shadow: 0 0 18px 6px rgba(212,212,212,0.35); }
+    }
+
+    .btn-primary {
+      animation: pulseGlow 2.4s ease-in-out infinite;
+    }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 28px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+    }
+    /* Corner bracket accent on hover */
+    .btn-ghost::before,
+    .btn-ghost::after {
+      content: '';
+      position: absolute;
+      width: 8px; height: 8px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .btn-ghost::before {
+      top: 4px; left: 4px;
+      border-width: 1.5px 0 0 1.5px;
+      transform: translate(-3px, -3px);
+    }
+    .btn-ghost::after {
+      bottom: 4px; right: 4px;
+      border-width: 0 1.5px 1.5px 0;
+      transform: translate(3px, 3px);
+    }
+    .btn-ghost:hover::before,
+    .btn-ghost:hover::after {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+    .btn-ghost:hover {
+      border-color: #444;
+      color: #fff;
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .btn-ghost:active {
+      transform: translateY(0) scale(0.98);
+      transition-duration: 0.08s;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .section-heading {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+    }
+
+    /* ── Approach Cards ── */
+    .approach-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(212,212,212,0.09);
+      border-radius: 16px;
+      padding: 36px 32px;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+    }
+    .approach-card:hover {
+      border-color: rgba(212,212,212,0.25);
+      background: rgba(255,255,255,0.04);
+      transform: translateY(-3px);
+    }
+    .approach-icon-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(212,212,212,0.12);
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes icon-glow-pulse {
+        0%, 100% {
+          border-color: rgba(212,212,212,0.12);
+          background: rgba(255,255,255,0.04);
+          box-shadow: none;
+        }
+        50% {
+          border-color: rgba(212,212,212,0.35);
+          background: rgba(255,255,255,0.08);
+          box-shadow: 0 0 12px rgba(212,212,212,0.10);
+        }
+      }
+
+      .approach-icon-box,
+      .service-icon {
+        animation: icon-glow-pulse 3s ease-in-out infinite;
+      }
+
+      /* Approach cards stagger */
+      .approach-card:nth-child(1) .approach-icon-box { animation-delay: 0s; }
+      .approach-card:nth-child(2) .approach-icon-box { animation-delay: 0.5s; }
+      .approach-card:nth-child(3) .approach-icon-box { animation-delay: 1s; }
+      .approach-card:nth-child(4) .approach-icon-box { animation-delay: 1.5s; }
+      .approach-card:nth-child(5) .approach-icon-box { animation-delay: 2s; }
+      .approach-card:nth-child(6) .approach-icon-box { animation-delay: 2.5s; }
+
+      /* Service cards stagger */
+      .service-card:nth-child(1) .service-icon { animation-delay: 0.25s; }
+      .service-card:nth-child(2) .service-icon { animation-delay: 0.75s; }
+      .service-card:nth-child(3) .service-icon { animation-delay: 1.25s; }
+      .service-card:nth-child(4) .service-icon { animation-delay: 1.75s; }
+      .service-card:nth-child(5) .service-icon { animation-delay: 2.25s; }
+      .service-card:nth-child(6) .service-icon { animation-delay: 2.75s; }
+    }
+    .approach-title {
+      font-size: 1.05rem;
+      font-weight: 650;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.35;
+      margin-bottom: 12px;
+    }
+    .approach-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    /* ── Experience Timeline ── */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 0;
+      width: 2px;
+      background: rgba(212,212,212,0.15);
+    }
+    .timeline-entry {
+      position: relative;
+      padding-bottom: 40px;
+    }
+    .timeline-entry:last-child {
+      padding-bottom: 0;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -37px;
+      top: 6px;
+      width: 10px;
+      height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(212,212,212,0.4);
+    }
+    .timeline-entry-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .timeline-bullets {
+      color: var(--text-muted);
+      font-weight: 300;
+      line-height: 1.75;
+      font-size: 0.9rem;
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .timeline-role-title {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      margin: 0;
+      padding: 0;
+    }
+    .timeline-bullets li {
+      padding-left: 1rem;
+      position: relative;
+    }
+    .timeline-bullets li > span {
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* ── About photo ── */
+    @keyframes photoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+    @keyframes ringRotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes ringRotateReverse {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(-360deg); }
+    }
+    .about-photo-wrap {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: photoFloat 6s ease-in-out infinite;
+    }
+    .about-photo-ring {
+      position: absolute;
+      inset: -18px;
+      border-radius: 16px;
+      border: 1.5px dashed rgba(212,212,212,0.35);
+      animation: ringRotate 12s linear infinite;
+      pointer-events: none;
+    }
+    .about-photo-ring-2 {
+      position: absolute;
+      inset: -32px;
+      border-radius: 20px;
+      border: 1px dashed rgba(212,212,212,0.15);
+      animation: ringRotateReverse 20s linear infinite;
+      pointer-events: none;
+    }
+    .about-photo {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background: var(--surface-2);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .about-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(6,6,6,0.6) 100%);
+    }
+
+    /* ── Open to Work badge ── */
+    .open-to-work-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      background: rgba(74, 222, 128, 0.08);
+      color: #4ade80;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      animation: otw-pulse-border 2.5s ease-in-out infinite;
+    }
+    .otw-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      flex-shrink: 0;
+      animation: otw-dot-blink 1.4s ease-in-out infinite;
+      box-shadow: 0 0 6px #4ade80;
+    }
+    @keyframes otw-dot-blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.35; transform: scale(0.7); }
+    }
+    @keyframes otw-pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+      50%       { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.1); }
+    }
+
+    /* ── Service cards ── */
+    .service-card {
+      padding: 28px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      transition: border-color 0.25s ease, transform 0.25s ease, background 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(212,212,212,0.05) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .service-card:hover {
+      border-color: rgba(212,212,212,0.3);
+      transform: translateY(-3px);
+      background: rgba(255,255,255,0.04);
+    }
+    .service-card:hover::before { opacity: 1; }
+    .service-icon {
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(212,212,212,0.1);
+      border: 1px solid rgba(212,212,212,0.15);
+      border-radius: 8px;
+      margin-bottom: 18px;
+      color: var(--accent);
+    }
+
+    /* ── Work cards ── */
+    .work-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .work-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .work-card:hover {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(212,212,212,0.25);
+      transform: translateY(-3px);
+    }
+    .work-card-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      position: relative;
+      background: var(--surface-2);
+    }
+    .work-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      filter: brightness(0.85);
+    }
+    .work-card:hover .work-card-img img {
+      transform: scale(1.04);
+      filter: brightness(0.95);
+    }
+    .work-card-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(6,6,6,0.8) 100%);
+    }
+    .work-card-body {
+      padding: 20px 24px 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .work-tag {
+      display: inline-block;
+      padding: 3px 9px;
+      background: rgba(212,212,212,0.1);
+      border: 1px solid rgba(212,212,212,0.15);
+      border-radius: 100px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #c8c8c8;
+      text-transform: uppercase;
+    }
+    .tool-tag {
+      display: inline-block;
+      padding: 3px 9px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* ── Stats ── */
+    .stat-card {
+      padding: 32px 28px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat-card:last-child { border-right: none; }
+    .stat-number {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: #fff;
+    }
+
+    /* ── CTA section ── */
+    #contact {
+      position: relative;
+      overflow: hidden;
+    }
+    #contact::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(212,212,212,0.06) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ── Tech Stack Marquee ── */
+    .stack-section {
+      padding: 36px 0;
+    }
+    .stack-label {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .marquee-container {
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+      mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    }
+    .marquee-track {
+      display: flex;
+      gap: 14px;
+      animation: marquee 40s linear infinite;
+      width: max-content;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    /* ── Workflow Marquee ── */
+    .wf-marquee-container {
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+      mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+      margin-bottom: 0;
+    }
+    .wf-marquee-track {
+      display: flex;
+      gap: 16px;
+      width: max-content;
+      animation: wf-marquee 35s linear infinite;
+    }
+    .wf-marquee-track:hover { animation-play-state: paused; }
+    @keyframes wf-marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .wf-marquee-card {
+      width: 260px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(212,212,212,0.1);
+      background: rgba(255,255,255,0.02);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .wf-marquee-card:hover {
+      border-color: rgba(212,212,212,0.35);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    .wf-marquee-card img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+    .wf-marquee-card-label {
+      padding: 10px 14px 12px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .wf-featured-title {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #fff;
+      line-height: 1;
+    }
+    .stack-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      flex-shrink: 0;
+      width: 96px;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+    .stack-card:hover {
+      border-color: rgba(212,212,212,0.3);
+      background: rgba(255,255,255,0.05);
+      transform: translateY(-2px);
+    }
+    .stack-logo {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stack-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .stack-logo-fallback {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .stack-name {
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    /* ── Divider ── */
+    .divider { border-color: var(--border); }
+
+    /* ── Nav link ── */
+    .nav-link {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      letter-spacing: 0.01em;
+    }
+    .nav-link:hover { color: var(--text); }
+
+    /* ── Hero canvas ── */
+    #hero-canvas {
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 50%;
+      height: 90%;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    /* ── Animate hero in ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-animate { animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .hero-animate-1 { animation-delay: 0.1s; }
+    .hero-animate-2 { animation-delay: 0.22s; }
+    .hero-animate-3 { animation-delay: 0.34s; }
+    .hero-animate-4 { animation-delay: 0.46s; }
+    .hero-animate-5 { animation-delay: 0.58s; }
+
+    /* ── Split heading line reveal ── */
+    @keyframes lineReveal {
+      from { transform: translateY(110%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .split-heading .line-wrap {
+      display: block;
+      overflow: hidden;
+      padding-bottom: 0.06em;
+    }
+    .split-heading .line-inner {
+      display: block;
+      opacity: 0;
+      transform: translateY(110%);
+      transition: none;
+    }
+    .split-heading.lines-visible .line-inner {
+      animation: lineReveal 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .split-heading.lines-visible .line-inner:nth-child(1) { animation-delay: 0s; }
+    .split-heading.lines-visible .line-wrap:nth-child(2) .line-inner { animation-delay: 0.13s; }
+
+    /* ── Workflow Carousel ── */
+    .wf-nav-btn {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      z-index: 2;
+    }
+    .wf-nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(212,212,212,0.06);
+    }
+    .wf-slide {
+      flex-shrink: 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94), border-color 0.4s ease;
+      cursor: pointer;
+      background: var(--surface-2);
+      position: relative;
+    }
+    .wf-slide.wf-active {
+      border-color: var(--accent);
+    }
+    @keyframes titleReveal {
+      from { opacity: 0; transform: translateY(100%); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .wf-title-wrap {
+      overflow: hidden;
+      padding-bottom: 0.06em;
+    }
+    .wf-title-inner {
+      display: block;
+      animation: titleReveal 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .wf-slide img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* Project name label inside active slide */
+    .wf-slide-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 28px 16px 14px;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    .wf-slide.wf-active .wf-slide-label {
+      opacity: 1;
+    }
+    /* Platform heading with lines */
+    .wf-platform-heading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .wf-platform-heading::before,
+    .wf-platform-heading::after {
+      content: '';
+      flex: 1;
+      max-width: 120px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(212,212,212,0.4));
+    }
+    .wf-platform-heading::after {
+      background: linear-gradient(to left, transparent, rgba(212,212,212,0.4));
+    }
+    .wf-platform-label-text {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .wf-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+      border: none;
+      padding: 0;
+    }
+    .wf-dot.wf-dot-active {
+      background: var(--accent);
+      transform: scale(1.4);
+    }
+    .wf-info-panel {
+      transition: opacity 0.3s ease;
+    }
+    .wf-info-panel.wf-fade {
+      opacity: 0;
+    }
+    /* Project info typography */
+    .wf-overview-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .wf-feature-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.84rem; line-height: 1.55;
+    }
+    .wf-feature-row .wf-dot-bullet {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    .wf-hours-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 24px;
+      background: rgba(212,212,212,0.06);
+    }
+    .wf-empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    /* ── Project Modal ── */
+    .proj-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .proj-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .proj-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(28px) scale(0.97);
+      transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+      scrollbar-width: thin;
+    }
+    .proj-modal-overlay.open .proj-modal {
+      transform: translateY(0) scale(1);
+    }
+    .proj-modal-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-radius: 14px 14px 0 0;
+      display: block;
+    }
+    .proj-modal-body {
+      padding: 32px 36px 36px;
+    }
+    .proj-modal-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .proj-modal-title {
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .proj-modal-overview-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .proj-modal-overview {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+    .proj-modal-features-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+    .proj-modal-features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 40px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 560px) {
+      .proj-modal-features-grid { grid-template-columns: 1fr; }
+      .proj-modal-body { padding: 24px 20px 28px; }
+    }
+    .proj-modal-feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+    .proj-modal-feature-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    .proj-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .proj-modal-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .proj-modal-tool-tag {
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .proj-modal-hours {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(212,212,212,0.06);
+      white-space: nowrap;
+    }
+    .proj-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      z-index: 10;
+    }
+    .proj-modal-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+    .proj-modal-inner { position: relative; }
+    /* Expand hint on active slide hover */
+    .wf-slide.wf-active .wf-expand-hint {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.15);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .wf-slide.wf-active:hover .wf-expand-hint { opacity: 1; }
+
+    /* ── Platform filter tabs ── */
+    .wf-filter-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .wf-filter-btn {
+      padding: 7px 20px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+    }
+    .wf-filter-btn:hover {
+      border-color: rgba(212,212,212,0.4);
+      color: var(--text);
+    }
+    .wf-filter-btn.wf-filter-active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(212,212,212,0.07);
+    }
+    .wf-empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Full-page animated particle background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Custom cursor (cross theme) -->
+  <div id="cursor"></div>
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring">
+    <span class="cr-b"></span>
+    <span class="cr-d"></span>
+    <span class="cr-e"></span>
+    <span class="cr-f"></span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       NAV
+  ══════════════════════════════════════ -->
+  <nav id="navbar">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#hero" class="text-white font-bold text-lg tracking-tight" style="letter-spacing:-0.03em;">
+        Brice
+      </a>
+
+      <!-- Links -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#about"    class="nav-link">About</a>
+        <a href="#services" class="nav-link">Services</a>
+        <a href="#work"     class="nav-link">Work</a>
+        <a href="#contact"  class="nav-link">Contact</a>
+      </div>
+
+      <!-- CTA -->
+      <a href="#contact" class="btn-primary" style="padding:9px 20px;font-size:0.8rem;">
+        Let's Talk
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════
+       HERO
+  ══════════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-grid-lines"></div>
+    <div class="hero-glow"></div>
+
+    <!-- Automation graph canvas -->
+    <canvas id="hero-canvas"></canvas>
+
+    <div class="max-w-7xl mx-auto px-6 w-full pt-24 pb-16 relative z-10">
+      <div class="max-w-2xl">
+        <div class="hero-animate hero-animate-1 mb-6">
+          <span class="badge-available">
+            <span class="badge-dot"></span>
+            Available for new projects
+          </span>
+        </div>
+
+        <h1 class="hero-heading hero-animate hero-animate-2 mb-6 split-heading">
+          Your workflows should<br/>
+          <span class="text-accent">run themselves.</span>
+        </h1>
+
+        <p class="hero-animate hero-animate-3 text-base leading-relaxed mb-8" style="color:var(--text-muted); max-width:520px; font-weight:300; line-height:1.75;">
+          I build intelligent automation systems that eliminate repetitive work —
+          connecting your tools, deploying AI agents, and turning manual processes
+          into frictionless pipelines.
+        </p>
+
+        <div class="hero-animate hero-animate-4 flex flex-wrap gap-3 mb-12">
+          <a href="#work" class="btn-primary">
+            See my work
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="#contact" class="btn-ghost">Get in touch</a>
+        </div>
+
+        <!-- Mini stats row -->
+        <div class="hero-animate hero-animate-5 flex flex-wrap gap-8">
+          <div>
+            <p class="text-2xl font-bold text-white count-up" data-target="11" data-suffix="+" style="letter-spacing:-0.04em;">11+</p>
+            <p class="text-xs mt-1" style="color:var(--text-muted);">Projects delivered</p>
+          </div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div>
+            <p class="text-2xl font-bold text-white count-up" data-target="500" data-suffix="+" style="letter-spacing:-0.04em;">500+</p>
+            <p class="text-xs mt-1" style="color:var(--text-muted);">Hours automated</p>
+          </div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div>
+            <p class="text-2xl font-bold text-white count-up" data-target="10" data-suffix="+" style="letter-spacing:-0.04em;">10+</p>
+            <p class="text-xs mt-1" style="color:var(--text-muted);">Tools integrated</p>
+          </div>
+          <div style="width:1px;background:var(--border);"></div>
+          <div>
+            <p class="text-2xl font-bold text-white" style="letter-spacing:-0.04em;">24<span class="text-accent">/7</span></p>
+            <p class="text-xs mt-1" style="color:var(--text-muted);">Automated systems</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       TECH STACK
+  ══════════════════════════════════════ -->
+  <div class="stack-section">
+    <p class="stack-label">Tools &amp; Platforms I Work With</p>
+    <div class="marquee-container">
+      <div class="marquee-track" id="stack-track">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       ABOUT
+  ══════════════════════════════════════ -->
+  <section id="about" class="py-28">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid md:grid-cols-2 gap-16 items-center">
+
+        <!-- Left: photo -->
+        <div class="reveal" style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+          <div class="about-photo-wrap">
+            <div class="about-photo-ring-2"></div>
+            <div class="about-photo-ring"></div>
+            <div class="about-photo">
+              <img src="ChatGPT Image Mar 8, 2026, 04_57_21 PM.png" alt="Brice" style="width:100%;height:100%;object-fit:cover;object-position:top;display:block;" />
+            </div>
+          </div>
+          <div class="open-to-work-badge">
+            <span class="otw-dot"></span>
+            Open to Work
+          </div>
+        </div>
+
+        <!-- Right: bio -->
+        <div>
+          <p class="section-label reveal">About me</p>
+          <h2 class="section-heading reveal reveal-delay-1 mb-6 split-heading">
+            The person behind<br/>
+            <span class="text-accent">the automation.</span>
+          </h2>
+
+          <div class="reveal reveal-delay-2 space-y-4 mb-8" style="color:var(--text-muted);line-height:1.8;font-weight:300;">
+            <p>
+              I'm <span style="color:var(--text-primary);font-weight:700;">James Brice Arda</span> — an <span style="color:var(--text-primary);font-weight:700;">AI automation specialist</span> who turns complex, time-consuming processes
+              into sleek, self-running systems. Whether it's wiring up tools like <span style="color:var(--text-primary);font-weight:700;">n8n, Make.com and Zapier</span>, or deploying <span style="color:var(--text-primary);font-weight:700;">custom AI agents</span>, I design automation that actually works.
+            </p>
+            <p>
+              My focus is building <span style="color:var(--text-primary);font-weight:700;">end-to-end pipelines</span> — from <span style="color:var(--text-primary);font-weight:700;">lead generation</span> and <span style="color:var(--text-primary);font-weight:700;">CRM integration</span>
+              to <span style="color:var(--text-primary);font-weight:700;">AI-powered content creation</span> and <span style="color:var(--text-primary);font-weight:700;">intelligent knowledge bases</span>.
+              If you're doing it manually and you hate it, I can probably automate it.
+            </p>
+            <p>
+              With <span style="color:var(--text-primary);font-weight:700;">8+ years in customer service</span>, I understand the real pain behind repetitive tasks — which is why I build automation that actually solves the problem, not just patches it.
+            </p>
+          </div>
+
+          <!-- Skills tags -->
+          <div class="reveal reveal-delay-3 flex flex-wrap gap-2 mb-8">
+            <span class="tool-tag">n8n</span>
+            <span class="tool-tag">Make.com</span>
+            <span class="tool-tag">OpenAI</span>
+            <span class="tool-tag">Relevance AI</span>
+            <span class="tool-tag">Zapier</span>
+            <span class="tool-tag">Python</span>
+            <span class="tool-tag">Salesforce CRM</span>
+            <span class="tool-tag">GoHighLevel</span>
+            <span class="tool-tag">Airtable</span>
+            <span class="tool-tag">Google Workspace</span>
+            <span class="tool-tag">RAG Systems</span>
+            <span class="tool-tag">AI Agents</span>
+            <span class="tool-tag">Webhooks</span>
+          </div>
+
+          <div class="reveal reveal-delay-4">
+            <a href="#contact" class="btn-primary">
+              Work with me
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       EXPERIENCE
+  ══════════════════════════════════════ -->
+  <section id="experience" class="py-28">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="mb-16 text-center">
+        <p class="section-label reveal">Experience</p>
+        <h2 class="section-heading reveal reveal-delay-1 mb-4 split-heading">
+          The work that<br/>
+          <span class="text-accent">built the expertise.</span>
+        </h2>
+      </div>
+
+      <div class="timeline max-w-3xl mx-auto">
+
+        <!-- Entry 1 -->
+        <div class="timeline-entry reveal">
+          <div class="timeline-dot"></div>
+          <div class="mb-1">
+            <h4 class="timeline-role-title">AI Automation Specialist (Freelance)</h4>
+          </div>
+          <div class="timeline-entry-meta">
+            <span style="color:var(--accent);font-weight:400;">Self-Employed</span>
+            <span style="color:var(--text-muted);font-weight:400;">Jan 2026 – Present</span>
+          </div>
+          <ul class="timeline-bullets">
+            <li><span>–</span>Design and deploy multi-step automation workflows across n8n, Make.com, and Zapier for clients in sales ops, content, and customer support</li>
+            <li><span>–</span>Build webhook-triggered pipelines integrating CRMs, Google Workspace, Slack, and AI APIs (OpenAI, OpenRouter, Gemini)</li>
+            <li><span>–</span>Implement JavaScript code nodes for data transformation, error handling, and conditional routing logic</li>
+            <li><span>–</span>Built and deployed 10+ automation workflows as portfolio projects spanning sales ops, content pipelines, and customer support use cases</li>
+          </ul>
+        </div>
+
+        <!-- Entry 2 -->
+        <div class="timeline-entry reveal reveal-delay-1">
+          <div class="timeline-dot"></div>
+          <div class="mb-1">
+            <h4 class="timeline-role-title">Senior Project Expert</h4>
+          </div>
+          <div class="timeline-entry-meta">
+            <span style="color:var(--accent);font-weight:400;">Cognizant</span>
+            <span style="color:var(--text-muted);font-weight:400;">Jul 2020 – Jan 2026</span>
+          </div>
+          <ul class="timeline-bullets">
+            <li><span>–</span>Managed complex client account operations; identified repetitive manual workflows and built internal process documentation to support future automation</li>
+            <li><span>–</span>Gained deep exposure to CRM workflows, ticket routing logic, and SLA-driven escalation patterns — directly informing current automation design work</li>
+          </ul>
+        </div>
+
+        <!-- Entry 3 -->
+        <div class="timeline-entry reveal reveal-delay-2">
+          <div class="timeline-dot"></div>
+          <div class="mb-1">
+            <h4 class="timeline-role-title">Engagement Specialist</h4>
+          </div>
+          <div class="timeline-entry-meta">
+            <span style="color:var(--accent);font-weight:400;">Synchrony Financial</span>
+            <span style="color:var(--text-muted);font-weight:400;">Apr 2019 – Oct 2019</span>
+          </div>
+          <ul class="timeline-bullets">
+            <li><span>–</span>Handled billing inquiries and account issue resolution; recognized patterns in manual back-office processes ripe for automation</li>
+          </ul>
+        </div>
+
+        <!-- Entry 4 -->
+        <div class="timeline-entry reveal reveal-delay-3">
+          <div class="timeline-dot"></div>
+          <div class="mb-1">
+            <h4 class="timeline-role-title">Earlier Roles</h4>
+          </div>
+          <div class="timeline-entry-meta">
+            <span style="color:var(--accent);font-weight:400;">Contact Solutions · Collabera · Wipro</span>
+            <span style="color:var(--text-muted);font-weight:400;">Oct 2015 – Feb 2019</span>
+          </div>
+          <ul class="timeline-bullets">
+            <li><span>–</span>Customer service and lead generation across inbound and outbound programs; built strong communication and process documentation skills</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       THE APPROACH
+  ══════════════════════════════════════ -->
+  <section id="approach" class="py-28">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <div class="mb-16 max-w-xl">
+        <p class="section-label reveal">The Approach</p>
+        <h2 class="section-heading reveal reveal-delay-1 split-heading">
+          How I think about<br/>
+          <span class="text-accent">automation.</span>
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-5">
+
+        <!-- Card 1 -->
+        <div class="reveal approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>
+              <path d="M12 7v4M9.5 17.5L12 11l2.5 6.5"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">Build for the full pipeline, not just the trigger</h3>
+          <p class="approach-desc">Every automation I build covers the complete flow — from the first webhook to the final output. I design for edge cases, branching logic, and error handling so workflows don't break silently in production.</p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="reveal reveal-delay-1 approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a7 7 0 0 1 7 7c0 3.5-2 6-4 7.5V18a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1.5C7 15 5 12.5 5 9a7 7 0 0 1 7-7z"/>
+              <path d="M9 21h6"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">AI belongs inside the workflow, not on top of it</h3>
+          <p class="approach-desc">I embed AI models — OpenAI, Gemini, OpenRouter — directly into the logic layer. Scoring leads, generating content, answering queries from a live knowledge base. AI does the thinking; the pipeline does the moving.</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="reveal reveal-delay-2 approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="4"/>
+              <line x1="12" y1="2" x2="12" y2="8"/>
+              <line x1="12" y1="16" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="8" y2="12"/>
+              <line x1="16" y1="12" x2="22" y2="12"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">Real pain points drive real automation</h3>
+          <p class="approach-desc">8+ years in customer operations taught me where the manual work actually hides — ticket routing, follow-up emails, CRM updates, lead reviews. I automate the tasks people hate most, not just the ones that look impressive.</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="reveal reveal-delay-1 approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">Tools are interchangeable. Logic is not.</h3>
+          <p class="approach-desc">n8n, Make.com, Zapier — the platform is a delivery vehicle. The conditional routing, data transformation, and JavaScript code nodes are where the real system lives. I build logic that works regardless of what's underneath.</p>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="reveal reveal-delay-2 approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">Ship fast, then make it bulletproof</h3>
+          <p class="approach-desc">I get working automations into production quickly, then layer in structured error handling, retry logic, and monitoring. A live system that catches issues beats a perfect system still on the whiteboard.</p>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="reveal reveal-delay-3 approach-card">
+          <div class="approach-icon-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3 class="approach-title">Every workflow is a system, not a script</h3>
+          <p class="approach-desc">I connect CRMs, Google Workspace, Slack, and AI APIs into coherent systems with clear data flow. Not isolated automations — interconnected pipelines where each piece informs the next.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SERVICES — WHAT I BUILD
+  ══════════════════════════════════════ -->
+  <section id="services" class="py-28">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="mb-16 max-w-xl">
+        <p class="section-label reveal">What I build</p>
+        <h2 class="section-heading reveal reveal-delay-1 mb-4 split-heading">
+          Automation that<br/>
+          <span class="text-accent">does the heavy lifting.</span>
+        </h2>
+        <p class="reveal reveal-delay-2" style="color:var(--text-muted);line-height:1.75;font-weight:300;">
+          From simple integrations to complex multi-agent systems, I build
+          automation that saves time and removes friction at every level of your workflow.
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <!-- Service 1 -->
+        <div class="service-card reveal reveal-delay-1">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M4 6h12M4 14h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">Workflow Automation</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            End-to-end automation pipelines using Make.com, n8n, and Zapier.
+            Connect your entire tool stack and eliminate manual handoffs.
+          </p>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="service-card reveal reveal-delay-2">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">AI Agents & Chatbots</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            Custom AI agents that handle conversations, qualify leads, book appointments,
+            and respond across platforms — 24/7 without human intervention.
+          </p>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="service-card reveal reveal-delay-3">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">Lead Generation & Qualification</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            Automated scraping, enrichment, scoring, and routing — so your team only
+            speaks to the right leads at the right time.
+          </p>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="service-card reveal reveal-delay-4">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 6h14v9a2 2 0 01-2 2H5a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.5"/><path d="M1 6h18M7 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">CRM & Data Integration</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            Sync your CRM, project management, and communication tools automatically.
+            Salesforce, GoHighLevel, Asana, Notion, Airtable — all talking to each other.
+          </p>
+        </div>
+
+        <!-- Service 5 -->
+        <div class="service-card reveal reveal-delay-5">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 14l4-4 3 3 5-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">Content Automation</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            Automated content pipelines — AI-written posts, emails, reports, and videos
+            produced at scale without touching a keyboard.
+          </p>
+        </div>
+
+        <!-- Service 6 -->
+        <div class="service-card reveal reveal-delay-6">
+          <div class="service-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5.05 5.05l1.41 1.41M13.54 13.54l1.41 1.41M5.05 14.95l1.41-1.41M13.54 6.46l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="font-semibold text-white mb-2" style="font-size:1rem;letter-spacing:-0.02em;">RAG & Knowledge Systems</h3>
+          <p class="text-sm leading-relaxed" style="color:var(--text-muted);">
+            Retrieval-Augmented Generation systems that give your AI real, accurate
+            knowledge — powering smarter chatbots and internal search tools.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       FEATURED WORK
+  ══════════════════════════════════════ -->
+  <section id="work" class="py-28" style="position:relative;overflow:hidden;">
+
+    <!-- Circuit board texture bg -->
+    <div style="position:absolute;inset:0;pointer-events:none;opacity:0.04;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='none'/%3E%3Cpath d='M0 60 H50 M70 60 H120 M60 0 V50 M60 70 V120' stroke='%23d4d4d4' stroke-width='0.8' fill='none'/%3E%3Ccircle cx='60' cy='60' r='4' fill='none' stroke='%23d4d4d4' stroke-width='0.8'/%3E%3Ccircle cx='60' cy='60' r='1.5' fill='%23d4d4d4'/%3E%3Cpath d='M0 20 H20 V0' stroke='%23d4d4d4' stroke-width='0.5' fill='none'/%3E%3Ccircle cx='20' cy='20' r='1.2' fill='%23d4d4d4'/%3E%3Cpath d='M120 100 H100 V120' stroke='%23d4d4d4' stroke-width='0.5' fill='none'/%3E%3Ccircle cx='100' cy='100' r='1.2' fill='%23d4d4d4'/%3E%3Cpath d='M0 90 H30' stroke='%23d4d4d4' stroke-width='0.4' fill='none'/%3E%3Ccircle cx='30' cy='90' r='1' fill='%23d4d4d4'/%3E%3Cpath d='M90 0 V30' stroke='%23d4d4d4' stroke-width='0.4' fill='none'/%3E%3Ccircle cx='90' cy='30' r='1' fill='%23d4d4d4'/%3E%3C/svg%3E&quot;);"></div>
+
+    <div class="max-w-7xl mx-auto px-6">
+
+      <!-- Section header -->
+      <div class="mb-10 text-center">
+        <p class="section-label reveal">Featured work</p>
+        <h2 class="wf-featured-title reveal reveal-delay-1">FEATURED WORK</h2>
+      </div>
+
+      <!-- Platform filter tabs -->
+      <div class="wf-filter-tabs reveal reveal-delay-2">
+        <button class="wf-filter-btn wf-filter-active" data-filter="all">All</button>
+        <button class="wf-filter-btn" data-filter="n8n">n8n</button>
+        <button class="wf-filter-btn" data-filter="make">Make.com</button>
+        <button class="wf-filter-btn" data-filter="zapier">Zapier</button>
+      </div>
+
+      <!-- Marquee -->
+      <div class="reveal reveal-delay-3 wf-marquee-container" style="padding:16px 0 8px;">
+        <div id="wf-track" class="wf-marquee-track"></div>
+      </div>
+
+    </div><!-- /.max-w-7xl -->
+
+    <!-- invisible placeholder to keep old cards out --><div class="work-grid" style="display:none;">
+
+        <!-- Card 1 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/Accounting Automation.png" alt="Accounting Automation" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Finance</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Accounting Automation</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Automated export of Xero account transactions into Google Sheets via Asana — runs every 15 minutes without human input.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">Make.com</span>
+              <span class="tool-tag">Xero</span>
+              <span class="tool-tag">Google Sheets</span>
+              <span class="tool-tag">Asana</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/AI Appointment Setter.png" alt="AI Appointment Setter" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">AI Agent</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">AI Appointment Setter</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              An AI agent that autonomously qualifies prospects and books appointments into a calendar — no human required.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">Calendar API</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/AI FB AGENT.png" alt="AI Facebook Agent" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">AI Agent</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">AI Facebook Page Agent</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              AI agent connected to a Facebook Page that filters, processes, and responds to messages using a custom knowledge base.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">Facebook API</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">Relevance AI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/AI Job Scrapper.png" alt="AI Job Scraper" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Data</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">AI Job Scraper</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Automated job listing scraper that collects, structures, and delivers targeted leads from multiple job boards.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">Python</span>
+              <span class="tool-tag">Web Scraping</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/AI Lead Qualification & Routing.png" alt="AI Lead Qualification" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Lead Gen</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">AI Lead Qualification & Routing</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Intelligent pipeline that scores inbound leads with AI, routes them to the right rep, and triggers follow-up sequences.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">CRM</span>
+              <span class="tool-tag">Slack</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/Asana CRM automation.png" alt="Asana CRM Automation" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">CRM</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Asana CRM Automation</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Bidirectional sync between Asana and a CRM — tasks, contacts, and deals stay updated across both platforms automatically.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">Make.com</span>
+              <span class="tool-tag">Asana</span>
+              <span class="tool-tag">Salesforce CRM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/Content Writer Automation.png" alt="Content Writer Automation" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Content</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Content Writer Automation</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              AI-driven content pipeline that researches topics, drafts long-form content, and publishes across channels on a schedule.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">Google Docs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/GMAIL Email optimizer.png" alt="Gmail Email Optimizer" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Email</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Gmail Email Optimizer</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              AI-powered Gmail workflow that categorizes, drafts replies, and prioritizes emails — keeping your inbox under control.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">Make.com</span>
+              <span class="tool-tag">Gmail API</span>
+              <span class="tool-tag">OpenAI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/Intelligent Lead Enrichment & Qualification System.png" alt="Lead Enrichment System" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Lead Gen</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Intelligent Lead Enrichment System</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Pulls lead data from multiple sources, enriches it via APIs, qualifies with AI scoring, and delivers ready-to-close prospects.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">Data APIs</span>
+              <span class="tool-tag">Airtable</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 10 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/RAG Project.png" alt="RAG Project" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">AI / RAG</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">RAG Knowledge Base System</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              Retrieval-Augmented Generation pipeline that ingests documents, embeds them, and powers an AI assistant with grounded, accurate answers.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">Vector DB</span>
+              <span class="tool-tag">Pinecone</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 11 -->
+        <div class="work-card">
+          <div class="work-card-img">
+            <img src="Case studies/Video Creator.png" alt="Video Creator" loading="lazy" />
+          </div>
+          <div class="work-card-body">
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <span class="work-tag">Content</span>
+            </div>
+            <h3 class="font-semibold text-white" style="font-size:0.95rem;letter-spacing:-0.02em;">Automated Video Creator</h3>
+            <p class="text-xs leading-relaxed" style="color:var(--text-muted);">
+              End-to-end video production pipeline — from topic input to scripted, voiced, and rendered video ready for publishing.
+            </p>
+            <div class="flex flex-wrap gap-1 mt-auto pt-2">
+              <span class="tool-tag">n8n</span>
+              <span class="tool-tag">OpenAI</span>
+              <span class="tool-tag">ElevenLabs</span>
+              <span class="tool-tag">Video APIs</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.work-grid hidden -->
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       STATS
+  ══════════════════════════════════════ -->
+  <div>
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex flex-wrap justify-center">
+
+        <div class="stat-card reveal">
+          <p class="stat-number"><span class="count-up" data-target="11" data-suffix="">11</span><span class="text-accent">+</span></p>
+          <p class="text-xs mt-2" style="color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Projects Built</p>
+        </div>
+
+        <div class="stat-card reveal reveal-delay-1">
+          <p class="stat-number"><span class="count-up" data-target="500" data-suffix="">500</span><span class="text-accent">+</span></p>
+          <p class="text-xs mt-2" style="color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Hours Automated</p>
+        </div>
+
+        <div class="stat-card reveal reveal-delay-2">
+          <p class="stat-number"><span class="count-up" data-target="10" data-suffix="">10</span><span class="text-accent">+</span></p>
+          <p class="text-xs mt-2" style="color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Tools Integrated</p>
+        </div>
+
+        <div class="stat-card reveal reveal-delay-3" style="border-right:none;">
+          <p class="stat-number">24<span class="text-accent">/7</span></p>
+          <p class="text-xs mt-2" style="color:var(--text-muted);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Automated Systems</p>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       CTA / CONTACT
+  ══════════════════════════════════════ -->
+  <section id="contact" class="py-32">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="section-label reveal mb-4">Let's build together</p>
+
+      <h2 class="reveal reveal-delay-1 mb-6 split-heading" style="font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;letter-spacing:-0.04em;line-height:1.05;">
+        Let's build your<br/>
+        <span class="text-accent">automation.</span>
+      </h2>
+
+      <p class="reveal reveal-delay-2 mb-10 mx-auto" style="color:var(--text-muted);font-weight:300;line-height:1.8;max-width:460px;">
+        Have a process you want to automate? A workflow that's costing your team hours
+        every week? Book a free 30-minute discovery call — I'll map out exactly how to fix it.
+      </p>
+
+      <div class="reveal reveal-delay-3 flex flex-wrap gap-3 justify-center mb-14">
+        <a href="https://calendar.app.google/mqn9R7rEz5u25Q8r8" target="_blank" rel="noopener noreferrer" class="btn-primary" style="font-size:0.95rem;padding:15px 36px;">
+          Book a discovery call
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="12" rx="1.5"/><path d="M5 1v4M11 1v4M2 7h12"/></svg>
+        </a>
+        <a href="#work" class="btn-ghost" style="font-size:0.95rem;padding:15px 36px;">View my work</a>
+      </div>
+
+      <!-- Social links -->
+      <div class="reveal reveal-delay-4 flex items-center justify-center gap-6">
+        <a href="https://www.linkedin.com/in/jbarda/" target="_blank" rel="noopener noreferrer" class="nav-link flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          LinkedIn
+        </a>
+        <span style="color:var(--border);">·</span>
+        <a href="https://www.upwork.com/freelancers/~01152f959bce46aee0" target="_blank" rel="noopener noreferrer" class="nav-link flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.227l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.702-2.704 2.702zm0-8.14c-2.539 0-4.51 1.649-5.31 4.366-1.22-1.834-2.148-4.036-2.687-5.892H7.828v7.112c-.002 1.406-1.141 2.546-2.547 2.546-1.405 0-2.543-1.14-2.543-2.546V3.492H0v7.112c0 2.914 2.37 5.303 5.281 5.303 2.913 0 5.283-2.389 5.283-5.303v-1.19c.529 1.107 1.182 2.229 1.974 3.221l-1.673 7.873h2.797l1.213-5.71c1.063.679 2.285 1.109 3.686 1.109 3 0 5.439-2.452 5.439-5.45 0-3.001-2.439-5.449-5.439-5.449z"/></svg>
+          Upwork
+        </a>
+        <span style="color:var(--border);">·</span>
+        <a href="https://www.onlinejobs.ph/jobseekers/info/4765069" target="_blank" rel="noopener noreferrer" class="nav-link flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="12"/><path d="M12 12v3"/></svg>
+          OnlineJobs.ph
+        </a>
+        <span style="color:var(--border);">·</span>
+        <a href="mailto:jbrice.arda@gmail.com" class="nav-link flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
+          jbrice.arda@gmail.com
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer style="border-top:1px solid var(--border);padding:24px 0;">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-sm font-bold" style="letter-spacing:-0.02em;">
+        Brice
+      </p>
+      <p class="text-xs" style="color:var(--text-muted);">
+        © 2026 Brice. AI Automation Specialist. All rights reserved.
+      </p>
+      <div class="flex gap-5">
+        <a href="#about"    class="nav-link text-xs">About</a>
+        <a href="#services" class="nav-link text-xs">Services</a>
+        <a href="#work"     class="nav-link text-xs">Work</a>
+        <a href="#contact"  class="nav-link text-xs">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════
+       PROJECT MODAL
+  ══════════════════════════════════════ -->
+  <div id="proj-modal-overlay" class="proj-modal-overlay" role="dialog" aria-modal="true">
+    <div class="proj-modal">
+      <div class="proj-modal-inner">
+        <button id="proj-modal-close" class="proj-modal-close" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <img id="proj-modal-img" class="proj-modal-img" src="" alt="" />
+        <div class="proj-modal-body">
+          <p id="proj-modal-tag" class="proj-modal-tag"></p>
+          <h2 id="proj-modal-title" class="proj-modal-title"></h2>
+          <p class="proj-modal-overview-label">Project Overview</p>
+          <p id="proj-modal-overview" class="proj-modal-overview"></p>
+          <p class="proj-modal-features-label">🔑 Key Features</p>
+          <div id="proj-modal-features" class="proj-modal-features-grid"></div>
+          <div class="proj-modal-footer">
+            <div id="proj-modal-tools" class="proj-modal-tools"></div>
+            <span id="proj-modal-hours" class="proj-modal-hours"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCRIPTS
+  ══════════════════════════════════════ -->
+  <script>
+    // ── Full-page connected particle background ──
+    (function() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles, raf;
+      const PARTICLE_COUNT = 90;
+      const MAX_DIST = 160;
+      const SPEED = 0.28;
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        if (!particles) initParticles();
+        else {
+          // keep existing particles but clamp to new bounds
+          particles.forEach(p => {
+            p.x = Math.min(p.x, W);
+            p.y = Math.min(p.y, H);
+          });
+        }
+      }
+
+      function initParticles() {
+        particles = [];
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          const isAccent = Math.random() < 0.12;
+          particles.push({
+            x:  Math.random() * W,
+            y:  Math.random() * H,
+            vx: (Math.random() - 0.5) * SPEED,
+            vy: (Math.random() - 0.5) * SPEED,
+            r:  isAccent ? 1.8 : (Math.random() < 0.5 ? 1 : 1.4),
+            baseOpacity: 0.25 + Math.random() * 0.35,
+            pulse: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.008 + Math.random() * 0.012,
+            accent: isAccent,
+          });
+        }
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, W, H);
+
+        const now = Date.now();
+
+        // Update + draw edges
+        for (let i = 0; i < particles.length; i++) {
+          const a = particles[i];
+          for (let j = i + 1; j < particles.length; j++) {
+            const b = particles[j];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > MAX_DIST) continue;
+
+            const t = 1 - dist / MAX_DIST;
+            const lineOpacity = t * t * 0.32;
+
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(212,212,212,${lineOpacity})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            // traveling dot on ~30% of edges
+            if (t > 0.4) {
+              const speed = 3200 + (i * 137 % 800);
+              const progress = (now % speed) / speed;
+              const px = a.x + dx * progress;
+              const py = a.y + dy * progress;
+              ctx.beginPath();
+              ctx.arc(px, py, 1, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(212,212,212,${lineOpacity * 3})`;
+              ctx.fill();
+            }
+          }
+        }
+
+        // Draw + move particles
+        particles.forEach(p => {
+          p.pulse += p.pulseSpeed;
+          const op = p.baseOpacity * (0.7 + 0.3 * Math.sin(p.pulse));
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          if (p.accent) {
+            ctx.fillStyle = `rgba(212,212,212,${op})`;
+            // small glow
+            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+            g.addColorStop(0, `rgba(212,212,212,${op * 0.4})`);
+            g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g;
+            ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(212,212,212,${op})`;
+          } else {
+            ctx.fillStyle = `rgba(255,255,255,${op * 0.7})`;
+          }
+          ctx.fill();
+
+          // move
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // wrap around edges (seamless)
+          if (p.x < -5)  p.x = W + 5;
+          if (p.x > W + 5) p.x = -5;
+          if (p.y < -5)  p.y = H + 5;
+          if (p.y > H + 5) p.y = -5;
+        });
+
+        raf = requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', () => {
+        cancelAnimationFrame(raf);
+        particles = null;
+        resize();
+        loop();
+      });
+
+      resize();
+      loop();
+    })();
+
+    // ── Custom cursor (cross theme) ──
+    const cursor  = document.getElementById('cursor');
+    const curDot  = document.getElementById('cursor-dot');
+    const ring    = document.getElementById('cursor-ring');
+    let ringX = 0, ringY = 0, curX = 0, curY = 0;
+
+    document.addEventListener('mousemove', e => {
+      curX = e.clientX; curY = e.clientY;
+      cursor.style.left = curX + 'px';
+      cursor.style.top  = curY + 'px';
+      curDot.style.left = curX + 'px';
+      curDot.style.top  = curY + 'px';
+    });
+
+    function animateRing() {
+      ringX += (curX - ringX) * 0.10;
+      ringY += (curY - ringY) * 0.10;
+      ring.style.left = ringX + 'px';
+      ring.style.top  = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // Click ripple
+    document.addEventListener('mousedown', e => {
+      cursor.classList.add('clicking');
+      curDot.classList.add('clicking');
+      const r = document.createElement('div');
+      r.className = 'cursor-ripple';
+      r.style.left = e.clientX + 'px';
+      r.style.top  = e.clientY + 'px';
+      document.body.appendChild(r);
+      r.addEventListener('animationend', () => r.remove());
+    });
+    document.addEventListener('mouseup', () => {
+      cursor.classList.remove('clicking');
+      curDot.classList.remove('clicking');
+    });
+
+    document.querySelectorAll('a, button, .work-card, .service-card, .wf-marquee-card, .stack-card').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursor.classList.add('hovering');
+        curDot.classList.add('hovering');
+        ring.classList.add('hovering');
+      });
+      el.addEventListener('mouseleave', () => {
+        cursor.classList.remove('hovering');
+        curDot.classList.remove('hovering');
+        ring.classList.remove('hovering');
+      });
+    });
+
+    // ── Nav scroll effect ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    // ── Scroll reveal ──
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ── Tech Stack Marquee with logos ──
+    // icon: URL string → <img>
+    // svg: inline SVG string → rendered directly (use for logos needing color control)
+    // fb: fallback styled box
+    const stackTools = [
+      {
+        name: 'n8n',
+        icon: 'https://cdn.simpleicons.org/n8n',
+        filter: 'none',
+      },
+      {
+        name: 'Make.com',
+        icon: 'https://cdn.simpleicons.org/make',
+        filter: 'none',
+      },
+      {
+        name: 'Zapier',
+        icon: 'https://cdn.simpleicons.org/zapier',
+        filter: 'none',
+      },
+      {
+        name: 'OpenAI',
+        icon: 'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/openai.svg',
+        filter: 'invert(1)',   // SVG is black, invert to white on dark bg
+      },
+      {
+        name: 'Relevance AI',
+        fb: { bg: '#1a1a2e', color: '#7c6af7', text: 'RAI' },
+      },
+      {
+        name: 'Python',
+        icon: 'https://cdn.simpleicons.org/python',
+        filter: 'none',
+      },
+      {
+        name: 'Salesforce',
+        icon: 'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/salesforce.svg',
+        filter: 'invert(55%) sepia(80%) saturate(400%) hue-rotate(170deg) brightness(100%)', // renders Salesforce blue #00A1E0
+      },
+      {
+        name: 'GoHighLevel',
+        fb: { bg: '#0d200d', color: '#4ade80', text: 'GHL' },
+      },
+      {
+        name: 'Airtable',
+        icon: 'https://cdn.simpleicons.org/airtable',
+        filter: 'none',
+      },
+      {
+        // Google Workspace has no simpleicons entry — use Google icon
+        name: 'Google',
+        icon: 'https://cdn.simpleicons.org/google',
+        filter: 'none',
+      },
+      {
+        name: 'Slack',
+        icon: 'https://cdn.simpleicons.org/slack',
+        filter: 'none',
+      },
+      {
+        name: 'Notion',
+        icon: 'https://cdn.simpleicons.org/notion',
+        filter: 'invert(1)',  // notion icon is black
+      },
+      {
+        name: 'Asana',
+        icon: 'https://cdn.simpleicons.org/asana',
+        filter: 'none',
+      },
+      {
+        name: 'Xero',
+        icon: 'https://cdn.simpleicons.org/xero',
+        filter: 'none',
+      },
+      {
+        // Monday.com has no simpleicons entry — styled fallback
+        name: 'Monday',
+        fb: { bg: '#1a0a2e', color: '#FF3D57', text: 'MON' },
+      },
+      {
+        name: 'Pinecone',
+        fb: { bg: '#0d1f1a', color: '#4ede9e', text: 'PINE' },
+      },
+      {
+        name: 'ElevenLabs',
+        icon: 'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/elevenlabs.svg',
+        filter: 'invert(1)',  // icon is black, invert to white
+      },
+      {
+        name: 'Facebook',
+        icon: 'https://cdn.simpleicons.org/facebook',
+        filter: 'none',
+      },
+      {
+        name: 'Gmail',
+        icon: 'https://cdn.simpleicons.org/gmail',
+        filter: 'none',
+      },
+      {
+        name: 'Zoom',
+        icon: 'https://cdn.simpleicons.org/zoom',
+        filter: 'none',
+      },
+    ];
+
+    function buildStackCard(tool) {
+      const card = document.createElement('div');
+      card.className = 'stack-card';
+
+      const logoDiv = document.createElement('div');
+      logoDiv.className = 'stack-logo';
+
+      if (tool.icon) {
+        const img = document.createElement('img');
+        img.src = tool.icon;
+        img.alt = tool.name;
+        img.loading = 'lazy';
+        img.style.filter = tool.filter || 'none';
+        img.onerror = function() {
+          this.parentNode.innerHTML = `<div class="stack-logo-fallback" style="background:#1a1a1a;color:#666;font-size:0.58rem;">${tool.name.substring(0,4).toUpperCase()}</div>`;
+        };
+        logoDiv.appendChild(img);
+      } else if (tool.fb) {
+        const fb = document.createElement('div');
+        fb.className = 'stack-logo-fallback';
+        fb.style.background = tool.fb.bg;
+        fb.style.color = tool.fb.color;
+        fb.style.border = `1px solid ${tool.fb.color}33`;
+        fb.textContent = tool.fb.text;
+        logoDiv.appendChild(fb);
+      }
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'stack-name';
+      nameDiv.textContent = tool.name;
+
+      card.appendChild(logoDiv);
+      card.appendChild(nameDiv);
+      return card;
+    }
+
+    const stackTrack = document.getElementById('stack-track');
+    // Duplicate for seamless loop
+    [...stackTools, ...stackTools].forEach(t => {
+      stackTrack.appendChild(buildStackCard(t));
+    });
+
+    // ── Hero canvas — automation node graph ──
+    (function() {
+      const canvas = document.getElementById('hero-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, nodes, animFrame;
+
+      const tools = [
+        { label: 'n8n',         color: '#d4d4d4' },
+        { label: 'Make',        color: '#a855f7' },
+        { label: 'OpenAI',      color: '#10b981' },
+        { label: 'Gmail',       color: '#ea4335' },
+        { label: 'Salesforce',  color: '#00a1e0' },
+        { label: 'GoHighLevel', color: '#4ade80' },
+        { label: 'Airtable',    color: '#18bfff' },
+        { label: 'Slack',       color: '#8b5cf6' },
+        { label: 'Pinecone',    color: '#d4d4d4' },
+        { label: 'Asana',       color: '#d4d4d4' },
+        { label: 'Xero',        color: '#3b82f6' },
+        { label: 'ElevenLabs',  color: '#10b981' },
+        { label: 'Notion',      color: '#f0f0f0' },
+      ];
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        W = canvas.width  = rect.width  * window.devicePixelRatio;
+        H = canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        initNodes();
+      }
+
+      function initNodes() {
+        const rw = W / window.devicePixelRatio;
+        const rh = H / window.devicePixelRatio;
+        nodes = tools.map((t, i) => ({
+          x: 60 + Math.random() * (rw - 120),
+          y: 60 + Math.random() * (rh - 120),
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          r: 22 + Math.random() * 8,
+          label: t.label,
+          color: t.color,
+          pulse: Math.random() * Math.PI * 2,
+        }));
+      }
+
+      function drawNode(n, t) {
+        n.pulse += 0.018;
+        const glow = 0.45 + Math.sin(n.pulse) * 0.2;
+        const rw = W / window.devicePixelRatio;
+        const rh = H / window.devicePixelRatio;
+
+        // glow ring
+        const grad = ctx.createRadialGradient(n.x, n.y, n.r * 0.5, n.x, n.y, n.r * 2.2);
+        grad.addColorStop(0, n.color + Math.round(glow * 40).toString(16).padStart(2,'0'));
+        grad.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r * 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // circle bg
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#111';
+        ctx.fill();
+
+        // circle border
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.strokeStyle = n.color + 'aa';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // label
+        ctx.fillStyle = '#f0f0f0';
+        ctx.font = `500 9px "DM Sans", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(n.label, n.x, n.y);
+
+        // bounce
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < n.r || n.x > rw - n.r) n.vx *= -1;
+        if (n.y < n.r || n.y > rh - n.r) n.vy *= -1;
+      }
+
+      function drawEdge(a, b) {
+        const rw = W / window.devicePixelRatio;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const maxDist = rw * 0.42;
+        if (dist > maxDist) return;
+
+        const opacity = (1 - dist / maxDist) * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(212,212,212,${opacity})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // animated dot on edge
+        const progress = (Date.now() % 2800) / 2800;
+        const px = a.x + dx * progress;
+        const py = a.y + dy * progress;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212,212,212,${opacity * 2})`;
+        ctx.fill();
+      }
+
+      function loop() {
+        const rw = W / window.devicePixelRatio;
+        const rh = H / window.devicePixelRatio;
+        ctx.clearRect(0, 0, rw, rh);
+
+        // fade edges in from sides
+        ctx.save();
+        // draw edges
+        for (let i = 0; i < nodes.length; i++)
+          for (let j = i + 1; j < nodes.length; j++)
+            drawEdge(nodes[i], nodes[j]);
+
+        // draw nodes
+        nodes.forEach((n, i) => drawNode(n, i));
+        ctx.restore();
+
+        animFrame = requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', () => {
+        cancelAnimationFrame(animFrame);
+        resize();
+        loop();
+      });
+
+      resize();
+      loop();
+    })();
+
+    // ── Workflow Carousel ──
+    (function() {
+      const PLATFORM_LABELS = {
+        all:    'ALL WORKFLOWS',
+        n8n:    'N8N WORKFLOWS',
+        make:   'MAKE.COM WORKFLOWS',
+        zapier: 'ZAPIER WORKFLOWS',
+      };
+
+      const ALL_PROJECTS = [
+        {
+          platform: 'make', tag: 'Finance', name: 'Xero to Asana Accounting Automation via Google Sheets',
+          img: 'Case studies/Accounting Automation.png',
+          hoursSaved: 8,
+          overview: 'Automates accounting exports from Xero to Asana via Google Sheets. Runs every 15 minutes, iterates through transactions, formats data, and uploads reports automatically. Eliminates manual data entry between accounting and project management tools. Built on Make.com using Router, Iterator, Google Sheets, and Asana modules.',
+          features: [
+            { name: 'Automated Export Cycles', desc: 'Pulls Xero transactions into Google Sheets every 15 minutes — zero manual triggers.' },
+            { name: 'Zero Manual Entry', desc: 'Eliminates copy-paste work entirely, reducing human error to zero.' },
+            { name: 'Multi-Account Sync', desc: 'Handles multiple Xero accounts simultaneously and routes data to the correct sheet.' },
+            { name: 'Real-Time Updates', desc: 'Google Sheets reflects the latest financial data within minutes of each transaction.' },
+          ],
+          tools: ['Make.com', 'Xero', 'Google Sheets', 'Asana'],
+        },
+        {
+          platform: 'n8n', tag: 'AI Agent', name: 'AI Appointment System — Booking and Cancellations on Autopilot',
+          img: 'Case studies/AI Appointment Setter.png',
+          hoursSaved: 12,
+          overview: 'Handles booking, rescheduling, and cancellations automatically across 40+ nodes. Checks real-time Google Calendar availability, validates timezones using JavaScript, confirms instantly, and routes to the right channel. Built for service businesses that are tired of back-and-forth scheduling. Built on n8n.',
+          features: [
+            { name: '40+ Node Workflow', desc: 'Handles every scenario — bookings, reschedules, and cancellations — in a single automated flow.' },
+            { name: 'Real-Time Calendar Checks', desc: 'Queries Google Calendar live to confirm availability before every booking.' },
+            { name: 'Timezone Validation', desc: 'JavaScript logic validates and converts timezones so bookings are always accurate.' },
+            { name: 'Smart Channel Routing', desc: 'Confirms appointments and routes messages to the correct channel automatically.' },
+          ],
+          tools: ['n8n', 'VAPI', 'Google Calendar', 'Webhooks'],
+        },
+        {
+          platform: 'n8n', tag: 'AI Agent', name: 'AI Facebook Messenger Agent — Answers Client Questions 24/7',
+          img: 'Case studies/AI FB AGENT.png',
+          hoursSaved: 20,
+          overview: 'AI agent deployed on Facebook Messenger that answers client questions 24/7 using an AI knowledge base with conversation memory. Triggered by incoming messages, filtered for relevant content, processed by an AI agent using OpenRouter, and responds automatically via HTTP request. Built on n8n with OpenRouter, Simple Memory, and Meta Webhooks.',
+          features: [
+            { name: 'Knowledge Base Integration', desc: 'Pulls answers from a custom knowledge base to give accurate, on-brand responses.' },
+            { name: 'Conversation Memory', desc: 'Maintains context across messages so responses stay coherent across a full conversation.' },
+            { name: '24/7 Automated Responses', desc: 'Handles every incoming message instantly, any time of day or night.' },
+            { name: 'Meta Webhook Trigger', desc: 'Activates the moment a message arrives via Meta Webhooks — zero delay.' },
+          ],
+          tools: ['n8n', 'OpenRouter', 'Facebook API', 'Knowledge Base'],
+        },
+        {
+          platform: 'n8n', tag: 'Data', name: 'AI Job Scraper — Finds Jobs and Drafts Applications Automatically',
+          img: 'Case studies/AI Job Scrapper.png',
+          hoursSaved: 15,
+          overview: 'Scrapes job listings, matches each role against an existing resume using AI, generates a tailored resume and personalized application email per job, then sends it automatically. Completed 44,289 tokens of AI processing in under 7 minutes without manual input. Built on n8n with OpenRouter, Gmail, Google Drive, and Slack.',
+          features: [
+            { name: 'AI Resume Matching', desc: 'Compares each job listing against an existing resume and scores the fit automatically.' },
+            { name: 'Tailored Application Generation', desc: 'Generates a custom resume and personalized cover email per job — no templates.' },
+            { name: 'Fully Automated Sending', desc: 'Sends the application email without any manual input after generation.' },
+            { name: '44,289 Tokens in 7 Minutes', desc: 'Processed a full application batch in under 7 minutes with zero human involvement.' },
+          ],
+          tools: ['n8n', 'OpenRouter', 'Google Drive', 'Gmail'],
+        },
+        {
+          platform: 'n8n', tag: 'Lead Gen', name: 'AI Lead Scoring — Hot Warm Cold Routing with Slack and Email Alerts',
+          img: 'Case studies/AI Lead Qualification & Routing.png',
+          hoursSaved: 18,
+          overview: 'Scores every inbound lead as Hot, Warm, or Cold using OpenAI the moment a form is submitted. Routes each lead automatically, fires Slack alerts to the right team, logs to Airtable, and sends follow-up emails — zero manual review. Built on n8n with OpenAI, Airtable, Slack, and Gmail.',
+          features: [
+            { name: 'Hot / Warm / Cold Scoring', desc: 'AI classifies every lead into a tier the instant a form is submitted.' },
+            { name: 'Automatic Lead Routing', desc: 'Routes each lead to the correct team path based on its score — no manual review.' },
+            { name: 'Slack Alerts', desc: 'Fires instant Slack notifications to the right team member for high-priority leads.' },
+            { name: 'Airtable Logging & Email Follow-Up', desc: 'Logs every lead to Airtable and triggers a personalised follow-up email automatically.' },
+          ],
+          tools: ['n8n', 'OpenAI', 'Airtable', 'Slack', 'Gmail'],
+        },
+        {
+          platform: 'zapier', tag: 'CRM', name: 'Automated CRM Pipeline — 30 Step Lead to Close Workflow',
+          img: 'Case studies/Asana CRM automation.png',
+          hoursSaved: 10,
+          overview: '30-step Zapier workflow triggered by Asana task updates. Routes leads across 5 pipeline stages — Ready, No Response, Quoted, Approved, Paid. Each stage triggers personalized Gmail follow-ups, Google Drive folder creation, AI-generated emails, and automated delays. Full sales pipeline on autopilot.',
+          features: [
+            { name: '5-Stage Pipeline Routing', desc: 'Moves leads through Ready, No Response, Quoted, Approved, and Paid stages automatically.' },
+            { name: 'Personalized Gmail Follow-Ups', desc: 'Triggers a tailored email at every stage transition — no manual sending.' },
+            { name: 'Google Drive Folder Creation', desc: 'Auto-creates a client folder in Google Drive the moment a lead advances.' },
+            { name: 'AI-Generated Emails', desc: 'Each follow-up email is written by AI to match the lead\'s stage and context.' },
+          ],
+          tools: ['Zapier', 'Asana', 'Gmail', 'Google Drive', 'AI'],
+        },
+        {
+          platform: 'zapier', tag: 'Content', name: 'AI Content System — Auto-Publishes to Facebook LinkedIn Instagram',
+          img: 'Case studies/Content Writer Automation.png',
+          hoursSaved: 25,
+          overview: 'Detects new files in Google Drive, generates an AI transcription and blog post, then publishes automatically to Facebook, LinkedIn, and Instagram. Two publishing paths handle photo and text variations. Eliminates manual content repurposing entirely. Built on Zapier with AI by Zapier and Facebook Pages.',
+          features: [
+            { name: 'Google Drive Trigger', desc: 'Detects new files in Google Drive and kicks off the full publishing pipeline automatically.' },
+            { name: 'AI Transcription & Blog Generation', desc: 'Generates an AI transcription and full blog post from the source file.' },
+            { name: 'Multi-Platform Publishing', desc: 'Publishes to Facebook, LinkedIn, and Instagram in a single automated run.' },
+            { name: 'Dual Publishing Paths', desc: 'Handles photo and text variations through two separate paths for each platform.' },
+          ],
+          tools: ['Zapier', 'AI', 'Facebook', 'LinkedIn', 'Instagram'],
+        },
+        {
+          platform: 'make', tag: 'Email', name: 'AI Email Organizer — Auto-Sorts Gmail Attachments to Google Drive',
+          img: 'Case studies/GMAIL Email optimizer.png',
+          hoursSaved: 6,
+          overview: 'Watches Gmail for new emails, lists all attachments, uploads each to AI for analysis, generates a smart filename, saves the renamed file to Google Drive, logs it to Google Sheets, and sends a notification. Fully automated attachment management. Built on Make.com with Gmail, Google Drive, and AI modules.',
+          features: [
+            { name: 'Attachment Detection', desc: 'Watches Gmail continuously and picks up every new attachment the moment it arrives.' },
+            { name: 'AI Smart Filename Generation', desc: 'Uploads each file to AI for analysis and generates a descriptive, organised filename.' },
+            { name: 'Auto-Save to Google Drive', desc: 'Saves every renamed attachment to the correct Google Drive folder automatically.' },
+            { name: 'Sheets Logging & Notifications', desc: 'Logs each file to Google Sheets and sends a notification — full audit trail included.' },
+          ],
+          tools: ['Make.com', 'Gmail', 'AI', 'Google Drive', 'Sheets'],
+        },
+        {
+          platform: 'zapier', tag: 'Lead Gen', name: 'AI Lead Enrichment — Apollo Lookup with Priority Routing',
+          img: 'Case studies/Intelligent Lead Enrichment & Qualification System.png',
+          hoursSaved: 15,
+          overview: 'Receives lead data via webhook, enriches it with Apollo data, then splits into three paths — High Priority, Low Priority, and No Information. High priority leads get saved to Google Sheets and receive AI-personalized emails. Low priority gets Slack alerts. Built on Zapier with AI by Zapier and Gmail.',
+          features: [
+            { name: 'Apollo Data Enrichment', desc: 'Pulls company and contact data from Apollo the moment a lead comes in via webhook.' },
+            { name: 'Three-Path Priority Split', desc: 'Routes leads into High Priority, Low Priority, or No Information paths automatically.' },
+            { name: 'AI-Personalized Email Outreach', desc: 'High-priority leads receive a tailored AI-generated email — sent automatically.' },
+            { name: 'Slack Alerts for Low Priority', desc: 'Fires a Slack notification for lower-priority leads so nothing slips through.' },
+          ],
+          tools: ['Zapier', 'Apollo', 'AI', 'Google Sheets', 'Gmail'],
+        },
+        {
+          platform: 'n8n', tag: 'AI / RAG', name: 'RAG Knowledge Base — Google Drive Synced AI Agent',
+          img: 'Case studies/RAG Project.png',
+          hoursSaved: 20,
+          overview: 'Syncs Google Drive documents to Supabase vector store using Gemini embeddings. Auto-updates on file create, edit, or delete events. Deployed as a chat agent with conversation memory — answers questions using live business knowledge. Built on n8n with Supabase, Google Gemini, and OpenRouter.',
+          features: [
+            { name: 'Google Drive Sync', desc: 'Automatically syncs documents to Supabase on every create, edit, or delete event.' },
+            { name: 'Gemini Embeddings', desc: 'Uses Google Gemini to embed documents for accurate semantic search and retrieval.' },
+            { name: 'Live Knowledge Chat Agent', desc: 'Deployed as a conversational agent that answers questions from live business documents.' },
+            { name: 'Conversation Memory', desc: 'Maintains context across the full conversation for coherent, multi-turn responses.' },
+          ],
+          tools: ['n8n', 'Supabase', 'Google Gemini', 'Vector DB'],
+        },
+        {
+          platform: 'n8n', tag: 'Content', name: 'Automated Video Creator — AI Generates and Uploads to YouTube',
+          img: 'Case studies/Video Creator.png',
+          hoursSaved: 30,
+          overview: 'Scheduled workflow that generates an AI video prompt, authenticates via JWT, calls a video generation API, polls until complete, converts the output, and uploads directly to YouTube — fully automated. Built on n8n with OpenAI, Google OAuth, and YouTube API.',
+          features: [
+            { name: 'Scheduled AI Prompt Generation', desc: 'Runs on a schedule and generates a fresh AI video prompt each time — zero input needed.' },
+            { name: 'JWT Authentication', desc: 'Authenticates with the video generation API securely using JWT tokens.' },
+            { name: 'Polling Until Complete', desc: 'Polls the video generation API until rendering finishes before moving to the next step.' },
+            { name: 'Direct YouTube Upload', desc: 'Converts and uploads the final video directly to YouTube via the YouTube API automatically.' },
+          ],
+          tools: ['n8n', 'OpenAI', 'Google APIs', 'YouTube'],
+        },
+      ];
+
+      let activeFilter = 'all';
+      let visibleProjects = ALL_PROJECTS.slice();
+
+      const track = document.getElementById('wf-track');
+
+      function buildMarquee(list) {
+        track.innerHTML = '';
+        track.style.animation = 'none';
+
+        if (!list.length) {
+          track.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem;padding:40px 0;">No automations for this platform yet — coming soon.</div>`;
+          return;
+        }
+
+        // Duplicate cards for seamless infinite loop
+        const doubled = [...list, ...list];
+        doubled.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'wf-marquee-card';
+          card.innerHTML = `
+            <img src="${p.img}" alt="${p.name}" loading="lazy" />
+            <div class="wf-marquee-card-label">${p.name}</div>`;
+          card.addEventListener('click', () => openModal(p));
+          track.appendChild(card);
+        });
+
+        // Re-trigger animation
+        requestAnimationFrame(() => {
+          track.style.animation = '';
+        });
+      }
+
+      // Filter tab logic
+      document.querySelectorAll('.wf-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.dataset.filter === activeFilter) return;
+          activeFilter = btn.dataset.filter;
+          document.querySelectorAll('.wf-filter-btn').forEach(b => b.classList.remove('wf-filter-active'));
+          btn.classList.add('wf-filter-active');
+          visibleProjects = activeFilter === 'all'
+            ? ALL_PROJECTS.slice()
+            : ALL_PROJECTS.filter(p => p.platform === activeFilter);
+          buildMarquee(visibleProjects);
+        });
+      });
+
+      // ── Modal ──
+      const modalOverlay = document.getElementById('proj-modal-overlay');
+      const modalClose   = document.getElementById('proj-modal-close');
+
+      function openModal(p) {
+        document.getElementById('proj-modal-img').src     = p.img;
+        document.getElementById('proj-modal-img').alt     = p.name;
+        document.getElementById('proj-modal-tag').textContent   = p.tag;
+        document.getElementById('proj-modal-title').textContent = p.name;
+        document.getElementById('proj-modal-overview').textContent = p.overview;
+
+        const half  = Math.ceil(p.features.length / 2);
+        const left  = p.features.slice(0, half);
+        const right = p.features.slice(half);
+        const featureHTML = (list) => list.map(f => `
+          <div class="proj-modal-feature">
+            <span class="proj-modal-feature-dot"></span>
+            <span><strong style="color:var(--text);font-weight:600;">${f.name}</strong> – <span style="color:var(--text-muted);">${f.desc}</span></span>
+          </div>`).join('');
+        document.getElementById('proj-modal-features').innerHTML =
+          `<div>${featureHTML(left)}</div><div>${featureHTML(right)}</div>`;
+
+        document.getElementById('proj-modal-tools').innerHTML =
+          p.tools.map(t => `<span class="proj-modal-tool-tag">${t}</span>`).join('');
+        document.getElementById('proj-modal-hours').textContent = `⏰ ${p.hoursSaved} hrs/week saved`;
+
+        modalOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      modalClose.addEventListener('click', closeModal);
+      modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+      // Init
+      buildMarquee(visibleProjects);
+    })();
+  </script>
+
+  <script>
+    // Split heading line-reveal animation
+    (function () {
+      function buildSplitHeading(el) {
+        // Collect segments split by <br> tags
+        const segments = [];
+        let current = document.createDocumentFragment();
+
+        el.childNodes.forEach(node => {
+          if (node.nodeName === 'BR') {
+            segments.push(current);
+            current = document.createDocumentFragment();
+          } else {
+            current.appendChild(node.cloneNode(true));
+          }
+        });
+        segments.push(current);
+
+        // Clear heading and rebuild with line-wrap structure
+        el.innerHTML = '';
+        segments.forEach(frag => {
+          const wrap = document.createElement('span');
+          wrap.className = 'line-wrap';
+          const inner = document.createElement('span');
+          inner.className = 'line-inner';
+          inner.appendChild(frag);
+          wrap.appendChild(inner);
+          el.appendChild(wrap);
+        });
+      }
+
+      document.querySelectorAll('.split-heading').forEach(el => buildSplitHeading(el));
+
+      // Hero heading fires immediately (no scroll needed)
+      const heroHeading = document.querySelector('.hero-heading.split-heading');
+      if (heroHeading) {
+        const heroDelay = 220; // match hero-animate-2 delay
+        setTimeout(() => heroHeading.classList.add('lines-visible'), heroDelay);
+      }
+
+      // Scroll-triggered for the rest
+      const headingObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !entry.target.dataset.split) {
+            entry.target.dataset.split = '1';
+            entry.target.classList.add('lines-visible');
+          }
+        });
+      }, { threshold: 0.25 });
+
+      document.querySelectorAll('.split-heading:not(.hero-heading)').forEach(el => headingObserver.observe(el));
+    })();
+  </script>
+
+  <script>
+    // Count-up animation
+    function animateCountUp(el) {
+      const target = parseInt(el.dataset.target, 10);
+      const suffix = el.dataset.suffix || '';
+      const duration = 1600;
+      const start = performance.now();
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.counted) {
+          entry.target.dataset.counted = '1';
+          animateCountUp(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+  </script>
+</body>
+</html>
