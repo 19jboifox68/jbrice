@@ -1381,52 +1381,53 @@
       color: var(--text-muted);
       font-size: 0.88rem;
     }
-  /* ── Hamburger button bars ── */
-  .menu-bar {
-    display: block;
-    width: 22px;
-    height: 1.5px;
-    background: var(--text);
-    border-radius: 2px;
-    transition: transform 0.25s ease, opacity 0.2s ease;
-  }
-  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
-  }
-  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) {
-    opacity: 0;
-  }
-  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
-  }
+    /* ── Hamburger button bars ── */
+    /* offset = bar gap (4.5px) + bar height (1.5px) ≈ 6px */
+    .menu-bar {
+        display: block;
+        width: 22px;
+        height: 1.5px;
+        background: var(--text);
+        border-radius: 2px;
+        transition: transform 0.25s ease, opacity 0.2s ease;
+    }
+    #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+    }
+    #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) {
+        opacity: 0;
+    }
+    #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+    }
 
-  /* ── Mobile dropdown menu ── */
-  .mobile-menu-closed {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .mobile-menu-open {
-    max-height: 360px;
-    overflow: hidden;
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+    /* ── Mobile dropdown menu ── */
+    .mobile-menu-closed {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .mobile-menu-open {
+        max-height: 360px;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-  /* ── Mobile nav links ── */
-  .mobile-nav-link {
-    display: block;
-    padding: 14px 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  .mobile-nav-link:hover,
-  .mobile-nav-link:focus {
-    color: var(--text);
-  }
+    /* ── Mobile nav links ── */
+    .mobile-nav-link {
+        display: block;
+        padding: 14px 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .mobile-nav-link:hover,
+    .mobile-nav-link:focus {
+        color: var(--text);
+    }
   </style>
 </head>
 <body>
@@ -1468,7 +1469,7 @@
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <!-- Hamburger — mobile only -->
-        <button id="menu-toggle" class="md:hidden flex flex-col justify-center items-center gap-1.5 w-9 h-9" aria-label="Open menu" aria-expanded="false">
+        <button id="menu-toggle" class="md:hidden flex flex-col justify-center items-center gap-1.5 w-9 h-9" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
           <span class="menu-bar"></span>
           <span class="menu-bar"></span>
           <span class="menu-bar"></span>
@@ -1483,7 +1484,7 @@
         <a href="#services" class="mobile-nav-link">Services</a>
         <a href="#work"     class="mobile-nav-link">Work</a>
         <a href="#contact"  class="mobile-nav-link">Contact</a>
-        <a href="#contact"  class="btn-primary mt-4" style="width:100%;justify-content:center;">
+        <a href="#contact"  class="btn-primary mt-4" style="width:100%;justify-content:center;display:flex;">
           Let's Talk
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
@@ -3140,10 +3141,12 @@
       function openMenu() {
         menu.classList.replace('mobile-menu-closed', 'mobile-menu-open');
         toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Close menu');
       }
       function closeMenu() {
         menu.classList.replace('mobile-menu-open', 'mobile-menu-closed');
         toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open menu');
       }
 
       toggle.addEventListener('click', function () {
@@ -3159,7 +3162,7 @@
       // Close on outside click
       document.addEventListener('click', function (e) {
         var navbar = document.getElementById('navbar');
-        if (navbar && !navbar.contains(e.target)) {
+        if (navbar && !navbar.contains(e.target) && toggle.getAttribute('aria-expanded') === 'true') {
           closeMenu();
         }
       });
