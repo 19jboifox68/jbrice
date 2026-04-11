@@ -1381,6 +1381,52 @@
       color: var(--text-muted);
       font-size: 0.88rem;
     }
+  /* ── Hamburger button bars ── */
+  .menu-bar {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(2) {
+    opacity: 0;
+  }
+  #menu-toggle[aria-expanded="true"] .menu-bar:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* ── Mobile dropdown menu ── */
+  .mobile-menu-closed {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mobile-menu-open {
+    max-height: 360px;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Mobile nav links ── */
+  .mobile-nav-link {
+    display: block;
+    padding: 14px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .mobile-nav-link:hover,
+  .mobile-nav-link:focus {
+    color: var(--text);
+  }
   </style>
 </head>
 <body>
@@ -1407,7 +1453,7 @@
         Brice
       </a>
 
-      <!-- Links -->
+      <!-- Desktop Links -->
       <div class="hidden md:flex items-center gap-8">
         <a href="#about"    class="nav-link">About</a>
         <a href="#services" class="nav-link">Services</a>
@@ -1415,11 +1461,33 @@
         <a href="#contact"  class="nav-link">Contact</a>
       </div>
 
-      <!-- CTA -->
-      <a href="#contact" class="btn-primary" style="padding:9px 20px;font-size:0.8rem;">
-        Let's Talk
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
+      <!-- Desktop CTA + Mobile Hamburger -->
+      <div class="flex items-center gap-3">
+        <a href="#contact" class="btn-primary" style="padding:9px 20px;font-size:0.8rem;">
+          Let's Talk
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <!-- Hamburger — mobile only -->
+        <button id="menu-toggle" class="md:hidden flex flex-col justify-center items-center gap-1.5 w-9 h-9" aria-label="Open menu" aria-expanded="false">
+          <span class="menu-bar"></span>
+          <span class="menu-bar"></span>
+          <span class="menu-bar"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobile-menu" class="mobile-menu-closed md:hidden">
+      <div style="border-top:1px solid var(--border);background:var(--surface);padding:8px 24px 20px;">
+        <a href="#about"    class="mobile-nav-link">About</a>
+        <a href="#services" class="mobile-nav-link">Services</a>
+        <a href="#work"     class="mobile-nav-link">Work</a>
+        <a href="#contact"  class="mobile-nav-link">Contact</a>
+        <a href="#contact"  class="btn-primary mt-4" style="width:100%;justify-content:center;">
+          Let's Talk
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -3060,6 +3128,42 @@
     }, { threshold: 0.3 });
 
     document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
+  </script>
+
+  <!-- Mobile menu toggle -->
+  <script>
+    (function () {
+      var toggle = document.getElementById('menu-toggle');
+      var menu   = document.getElementById('mobile-menu');
+      if (!toggle || !menu) return;
+
+      function openMenu() {
+        menu.classList.replace('mobile-menu-closed', 'mobile-menu-open');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+      function closeMenu() {
+        menu.classList.replace('mobile-menu-open', 'mobile-menu-closed');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      toggle.addEventListener('click', function () {
+        var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        isOpen ? closeMenu() : openMenu();
+      });
+
+      // Close on nav link click
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', closeMenu);
+      });
+
+      // Close on outside click
+      document.addEventListener('click', function (e) {
+        var navbar = document.getElementById('navbar');
+        if (navbar && !navbar.contains(e.target)) {
+          closeMenu();
+        }
+      });
+    })();
   </script>
 </body>
 </html>
